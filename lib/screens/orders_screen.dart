@@ -4,7 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/format.dart';
 
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({super.key});
+  final String? initialStatusFilter; // <--- Idinagdag para tanggapin ang filter galing sa Profile screen
+  const OrdersScreen({super.key, this.initialStatusFilter});
 
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
@@ -13,19 +14,30 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   static const _brown = Color(0xFF5C3A21);
   late Future<List<Map<String, dynamic>>> _future;
+  String? _selectedFilter;
 
   @override
   void initState() {
     super.initState();
+    _selectedFilter = widget.initialStatusFilter;
     _future = _load();
   }
 
   Future<List<Map<String, dynamic>>> _load() async {
-    final rows = await Supabase.instance.client
+    var query = Supabase.instance.client
         .from('orders')
-        .select()
-        .order('created_at', ascending: false);
-    return (rows as List).map((r) => Map<String, dynamic>.from(r as Map)).toList();
+        .select();
+    
+    // Kung may filter, maaari nating i-filter kung kailangan, o i-load lahat at salain sa Dart side para mas madali
+    final rows = await query.order('created_at', ascending: false);
+    
+    List<Map<String, dynamic>> list = (rows as List).map((r) => Map<String, dynamic>.from(r as Map)).toList();
+    
+    if (_selectedFilter != null && _selectedFilter != 'ALL') {
+      list = list.where((o) => (o['status'] ?? 'PENDING').toString().toUpperCase() == _selectedFilter).toList();
+    }
+    
+    return list;
   }
 
   Future<void> _refresh() async {
@@ -55,11 +67,23 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Order History'),
+        title: Text(_selectedFilter == null ? 'Order History' : 'Orders: $_selectedFilter'),
         backgroundColor: _brown,
         foregroundColor: Colors.white,
         actions: [
+          if (_selectedFilter != null)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              tooltip: 'Clear Filter',
+              onPressed: () {
+                setState(() {
+                  _selectedFilter = null;
+                  _future = _load();
+                });
+              },
+            ),
           IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh)),
         ],
       ),
@@ -76,7 +100,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           }
           final orders = snap.data ?? [];
           if (orders.isEmpty) {
-            return const Center(child: Text('No orders yet'));
+            return const Center(child: Text('No orders found'));
           }
           return RefreshIndicator(
             onRefresh: _refresh,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
+import '../services/cart_service.dart'; // <--- Idinagdag ang import ng CartService
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({Key? key}) : super(key: key);
@@ -216,8 +217,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black),
                       onPressed: () {
+                        CartService.instance.add(product); // <--- Dito na idinaragdag sa Cart Service!
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${product.name} (Size: $selectedSize) to Cart!')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Added ${product.name} (Size: $selectedSize) to Cart!')),
+                        );
                       },
                       child: const Text('Add to Cart', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),

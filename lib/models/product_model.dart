@@ -2,24 +2,27 @@ class Product {
   final String id;
   final String name;
   final double price;
-  final String? description;
-  final String? imageUrl;
+  final String imageUrl;
+  final String category; // 'Hoodies', 'Shirts', 'Pants', 'Caps'
+  final List<String> sizes;
 
-  const Product({
+  Product({
     required this.id,
     required this.name,
     required this.price,
-    this.description,
-    this.imageUrl,
+    required this.imageUrl,
+    required this.category,
+    this.sizes = const ['S', 'M', 'L', 'XL'],
   });
 
-  factory Product.fromMap(Map<String, dynamic> m) {
+  factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: m['id'].toString(),
-      name: (m['name'] ?? '').toString(),
-      price: double.tryParse(m['price'].toString()) ?? 0,
-      description: m['description']?.toString(),
-      imageUrl: m['image_url']?.toString(),
+      id: json['id'].toString(),
+      name: json['name'] ?? '',
+      price: (json['price'] as num).toDouble(),
+      imageUrl: json['image_url'] ?? '',
+      category: json['category'] ?? 'Shirts',
+      sizes: List<String>.from(json['sizes'] ?? ['S', 'M', 'L', 'XL']),
     );
   }
 }

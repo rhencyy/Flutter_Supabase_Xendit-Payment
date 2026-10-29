@@ -7,10 +7,13 @@ import 'screens/main_navigation_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Naka-setup na ang Supabase gamit ang iyong AppConfig
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
     anonKey: AppConfig.supabaseAnonKey,
   );
+  
   runApp(const MyApp());
 }
 
